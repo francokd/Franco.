@@ -1,0 +1,864 @@
+-- Services
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+local Workspace = game:GetService("Workspace")
+local TweenService = game:GetService("TweenService")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- GUI Principal
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "CustomDevGui"
+ScreenGui.ResetOnSpawn = false
+
+-- Soporte de contenedor para Solara / Executing contexts
+local parentTarget = CoreGui
+pcall(function()
+	if gethui then
+		parentTarget = gethui()
+	end
+end)
+ScreenGui.Parent = parentTarget
+ScreenGui.DisplayOrder = 999999999
+
+-- Marco Principal (CanvasGroup)
+local MainFrame = Instance.new("CanvasGroup")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 0, 0, 0)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.GroupTransparency = 1
+MainFrame.Parent = ScreenGui
+
+-- Borde Neón
+local MainStroke = Instance.new("UIStroke")
+MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+MainStroke.Color = Color3.fromRGB(60, 110, 240)
+MainStroke.Thickness = 1.5
+MainStroke.Transparency = 0.2
+MainStroke.Parent = MainFrame
+
+-- Gradiente de Fondo
+local MainGradient = Instance.new("UIGradient")
+MainGradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 35)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(12, 12, 18))
+})
+MainGradient.Rotation = 45
+MainGradient.Parent = MainFrame
+
+local MainUICorner = Instance.new("UICorner")
+MainUICorner.CornerRadius = UDim.new(0, 12)
+MainUICorner.Parent = MainFrame
+
+-- Barra Superior (Header)
+local Header = Instance.new("Frame")
+Header.Name = "Header"
+Header.Size = UDim2.new(1, 0, 0, 38)
+Header.BackgroundColor3 = Color3.fromRGB(28, 28, 38)
+Header.BorderSizePixel = 0
+Header.Parent = MainFrame
+
+local HeaderUICorner = Instance.new("UICorner")
+HeaderUICorner.CornerRadius = UDim.new(0, 12)
+HeaderUICorner.Parent = Header
+
+-- Indicador LED Verde Parpadeante
+local ActiveDot = Instance.new("Frame")
+ActiveDot.Name = "ActiveDot"
+ActiveDot.Size = UDim2.new(0, 8, 0, 8)
+ActiveDot.Position = UDim2.new(0, 12, 0.5, -4)
+ActiveDot.BackgroundColor3 = Color3.fromRGB(50, 255, 100)
+ActiveDot.BorderSizePixel = 0
+ActiveDot.Parent = Header
+
+local DotCorner = Instance.new("UICorner")
+DotCorner.CornerRadius = UDim.new(1, 0)
+DotCorner.Parent = ActiveDot
+
+local DotStroke = Instance.new("UIStroke")
+DotStroke.Color = Color3.fromRGB(50, 255, 100)
+DotStroke.Thickness = 2
+DotStroke.Transparency = 0.5
+DotStroke.Parent = ActiveDot
+
+task.spawn(function()
+	while ActiveDot and ActiveDot.Parent do
+		TweenService:Create(ActiveDot, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {BackgroundTransparency = 0.8}):Play()
+		TweenService:Create(DotStroke, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.9}):Play()
+		task.wait(0.6)
+		TweenService:Create(ActiveDot, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {BackgroundTransparency = 0}):Play()
+		TweenService:Create(DotStroke, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.3}):Play()
+		task.wait(0.6)
+	end
+end)
+
+-- Título con Nombre "Franco"
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -90, 1, 0)
+Title.Position = UDim2.new(0, 26, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "Dev Panel <font color=\"#FFD700\">• Franco</font>"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 14
+Title.Font = Enum.Font.SourceSansBold
+Title.RichText = true
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Header
+
+-- Botón Cerrar (X)
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 26, 0, 26)
+CloseBtn.Position = UDim2.new(1, -32, 0, 6)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(230, 50, 60)
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.Font = Enum.Font.SourceSansBold
+CloseBtn.TextSize = 13
+CloseBtn.Parent = Header
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.Parent = CloseBtn
+
+-- Botón Minimizar (-)
+local MinimizeBtn = Instance.new("TextButton")
+MinimizeBtn.Size = UDim2.new(0, 26, 0, 26)
+MinimizeBtn.Position = UDim2.new(1, -64, 0, 6)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
+MinimizeBtn.Text = "─"
+MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeBtn.Font = Enum.Font.SourceSansBold
+MinimizeBtn.TextSize = 12
+MinimizeBtn.Parent = Header
+
+local MinimizeCorner = Instance.new("UICorner")
+MinimizeCorner.CornerRadius = UDim.new(0, 6)
+MinimizeCorner.Parent = MinimizeBtn
+
+--------------------------------------------------------------------------------
+-- CÍRCULO FLOTANTE (CON 'F' ROJA Y RESPLANDOR)
+--------------------------------------------------------------------------------
+local FloatingCircle = Instance.new("TextButton")
+FloatingCircle.Name = "FloatingCircle"
+FloatingCircle.Size = UDim2.new(0, 52, 0, 52)
+FloatingCircle.Position = UDim2.new(0.1, 0, 0.1, 0)
+FloatingCircle.BackgroundColor3 = Color3.fromRGB(20, 15, 20)
+FloatingCircle.Text = "F"
+FloatingCircle.TextColor3 = Color3.fromRGB(255, 30, 30)
+FloatingCircle.Font = Enum.Font.FredokaOne
+FloatingCircle.TextSize = 28
+FloatingCircle.Visible = false
+FloatingCircle.Active = true
+FloatingCircle.Parent = ScreenGui
+
+local CircleCorner = Instance.new("UICorner")
+CircleCorner.CornerRadius = UDim.new(1, 0)
+CircleCorner.Parent = FloatingCircle
+
+local CircleStroke = Instance.new("UIStroke")
+CircleStroke.Color = Color3.fromRGB(255, 60, 0)
+CircleStroke.Thickness = 2.5
+CircleStroke.Transparency = 0.1
+CircleStroke.Parent = FloatingCircle
+
+local FlameGlow = Instance.new("UIStroke")
+FlameGlow.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+FlameGlow.Color = Color3.fromRGB(255, 0, 0)
+FlameGlow.Thickness = 1.5
+FlameGlow.Transparency = 0.3
+FlameGlow.Parent = FloatingCircle
+
+task.spawn(function()
+	while FloatingCircle do
+		TweenService:Create(CircleStroke, TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Color = Color3.fromRGB(255, 120, 0)}):Play()
+		TweenService:Create(FloatingCircle, TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {TextColor3 = Color3.fromRGB(255, 60, 60)}):Play()
+		task.wait(0.4)
+		TweenService:Create(CircleStroke, TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Color = Color3.fromRGB(255, 0, 0)}):Play()
+		TweenService:Create(FloatingCircle, TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {TextColor3 = Color3.fromRGB(255, 0, 0)}):Play()
+		task.wait(0.4)
+	end
+end)
+
+--------------------------------------------------------------------------------
+-- PANEL LATERAL DE NAVEGACIÓN (TABS)
+--------------------------------------------------------------------------------
+local TabSidebar = Instance.new("Frame")
+TabSidebar.Name = "TabSidebar"
+TabSidebar.Size = UDim2.new(0, 115, 1, -48)
+TabSidebar.Position = UDim2.new(0, 6, 0, 42)
+TabSidebar.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
+TabSidebar.BorderSizePixel = 0
+TabSidebar.Parent = MainFrame
+
+local SidebarCorner = Instance.new("UICorner")
+SidebarCorner.CornerRadius = UDim.new(0, 8)
+SidebarCorner.Parent = TabSidebar
+
+local SidebarList = Instance.new("UIListLayout")
+SidebarList.Parent = TabSidebar
+SidebarList.SortOrder = Enum.SortOrder.LayoutOrder
+SidebarList.Padding = UDim.new(0, 5)
+
+-- Contenedor de Páginas
+local ContentContainer = Instance.new("Frame")
+ContentContainer.Name = "ContentContainer"
+ContentContainer.Size = UDim2.new(1, -135, 1, -48)
+ContentContainer.Position = UDim2.new(0, 126, 0, 42)
+ContentContainer.BackgroundTransparency = 1
+ContentContainer.Parent = MainFrame
+
+--------------------------------------------------------------------------------
+-- CREACIÓN DE SECCIONES (PÁGINAS)
+--------------------------------------------------------------------------------
+local tabs = {}
+
+local function createTab(tabName, layoutOrder)
+	local tabBtn = Instance.new("TextButton")
+	tabBtn.Name = tabName .. "TabBtn"
+	tabBtn.Size = UDim2.new(1, 0, 0, 34)
+	tabBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+	tabBtn.Text = tabName
+	tabBtn.TextColor3 = Color3.fromRGB(160, 160, 175)
+	tabBtn.Font = Enum.Font.SourceSansBold
+	tabBtn.TextSize = 13
+	tabBtn.LayoutOrder = layoutOrder
+	tabBtn.Parent = TabSidebar
+
+	local btnCorner = Instance.new("UICorner")
+	btnCorner.CornerRadius = UDim.new(0, 6)
+	btnCorner.Parent = tabBtn
+
+	local tabFrame = Instance.new("ScrollingFrame")
+	tabFrame.Name = tabName .. "Page"
+	tabFrame.Size = UDim2.new(1, 0, 1, 0)
+	tabFrame.BackgroundTransparency = 1
+	tabFrame.BorderSizePixel = 0
+	tabFrame.ScrollBarThickness = 3
+	tabFrame.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 100)
+	tabFrame.Visible = false
+	tabFrame.Parent = ContentContainer
+
+	local pageList = Instance.new("UIListLayout")
+	pageList.Parent = tabFrame
+	pageList.SortOrder = Enum.SortOrder.LayoutOrder
+	pageList.Padding = UDim.new(0, 8)
+
+	tabBtn.MouseButton1Click:Connect(function()
+		for name, data in pairs(tabs) do
+			data.Frame.Visible = false
+			TweenService:Create(data.Button, TweenInfo.new(0.2), {
+				BackgroundColor3 = Color3.fromRGB(30, 30, 40),
+				TextColor3 = Color3.fromRGB(160, 160, 175)
+			}):Play()
+		end
+		tabFrame.Visible = true
+		TweenService:Create(tabBtn, TweenInfo.new(0.2), {
+			BackgroundColor3 = Color3.fromRGB(45, 120, 240),
+			TextColor3 = Color3.fromRGB(255, 255, 255)
+		}):Play()
+	end)
+
+	tabs[tabName] = { Button = tabBtn, Frame = tabFrame }
+	return tabFrame
+end
+
+-- Secciones Principales
+local HabilidadesPage = createTab("Habilidades", 1)
+local CriminalesPage = createTab("criminales", 2)
+local PoliciePage = createTab("policie", 3)
+local TPJugadoresPage = createTab("TP jugadores", 4)
+
+-- Activar primera pestaña por defecto
+tabs["Habilidades"].Frame.Visible = true
+tabs["Habilidades"].Button.BackgroundColor3 = Color3.fromRGB(45, 120, 240)
+tabs["Habilidades"].Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+--------------------------------------------------------------------------------
+-- BOTONES Y TEXTO INFORMATIVO: SECCIÓN HABILIDADES
+--------------------------------------------------------------------------------
+local InfoBox = Instance.new("Frame")
+InfoBox.Size = UDim2.new(1, -10, 0, 52)
+InfoBox.BackgroundColor3 = Color3.fromRGB(28, 28, 38)
+InfoBox.BorderSizePixel = 0
+InfoBox.Parent = HabilidadesPage
+
+local InfoCorner = Instance.new("UICorner")
+InfoCorner.CornerRadius = UDim.new(0, 6)
+InfoCorner.Parent = InfoBox
+
+local InfoStroke = Instance.new("UIStroke")
+InfoStroke.Color = Color3.fromRGB(60, 110, 240)
+InfoStroke.Thickness = 1
+InfoStroke.Transparency = 0.5
+InfoStroke.Parent = InfoBox
+
+local InfoText = Instance.new("TextLabel")
+InfoText.Size = UDim2.new(1, -12, 1, -8)
+InfoText.Position = UDim2.new(0, 6, 0, 4)
+InfoText.BackgroundTransparency = 1
+InfoText.Text = "presiona control para bloquear la pantalla y manten presionado click derecho para el seguimiento de la mira"
+InfoText.TextColor3 = Color3.fromRGB(200, 210, 230)
+InfoText.Font = Enum.Font.SourceSansItalic
+InfoText.TextSize = 13
+InfoText.TextWrapped = true
+InfoText.TextYAlignment = Enum.TextYAlignment.Center
+InfoText.Parent = InfoBox
+
+local VisulyBtn = Instance.new("TextButton")
+VisulyBtn.Size = UDim2.new(1, -10, 0, 40)
+VisulyBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
+VisulyBtn.Text = "Visuly: OFF  [Tecla V]"
+VisulyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+VisulyBtn.Font = Enum.Font.SourceSans
+VisulyBtn.TextSize = 15
+VisulyBtn.Parent = HabilidadesPage
+
+local VisulyCorner = Instance.new("UICorner")
+VisulyCorner.CornerRadius = UDim.new(0, 6)
+VisulyCorner.Parent = VisulyBtn
+
+local JumpBtn = Instance.new("TextButton")
+JumpBtn.Size = UDim2.new(1, -10, 0, 40)
+JumpBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
+JumpBtn.Text = "Súper Salto: OFF  [Tecla J]"
+JumpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+JumpBtn.Font = Enum.Font.SourceSans
+JumpBtn.TextSize = 15
+JumpBtn.Parent = HabilidadesPage
+
+local JumpCorner = Instance.new("UICorner")
+JumpCorner.CornerRadius = UDim.new(0, 6)
+JumpCorner.Parent = JumpBtn
+
+local TpForwardBtn = Instance.new("TextButton")
+TpForwardBtn.Size = UDim2.new(1, -10, 0, 40)
+TpForwardBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
+TpForwardBtn.Text = "Teleport 5 met..  [Tecla T]"
+TpForwardBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+TpForwardBtn.Font = Enum.Font.SourceSans
+TpForwardBtn.TextSize = 15
+TpForwardBtn.Parent = HabilidadesPage
+
+local TpForwardCorner = Instance.new("UICorner")
+TpForwardCorner.CornerRadius = UDim.new(0, 6)
+TpForwardCorner.Parent = TpForwardBtn
+
+--------------------------------------------------------------------------------
+-- BOTONES: SECCIÓN CRIMINALES
+--------------------------------------------------------------------------------
+local CrimSubTitle = Instance.new("TextLabel")
+CrimSubTitle.Size = UDim2.new(1, -10, 0, 15)
+CrimSubTitle.BackgroundTransparency = 1
+CrimSubTitle.Text = "presiona para ir a una base criminal"
+CrimSubTitle.TextColor3 = Color3.fromRGB(150, 150, 165)
+CrimSubTitle.Font = Enum.Font.SourceSansItalic
+CrimSubTitle.TextSize = 12
+CrimSubTitle.TextXAlignment = Enum.TextXAlignment.Left
+CrimSubTitle.Parent = CriminalesPage
+
+local CrimTpBtn = Instance.new("TextButton")
+CrimTpBtn.Size = UDim2.new(1, -10, 0, 40)
+CrimTpBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
+CrimTpBtn.Text = "base.crim  [Tecla B]"
+CrimTpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CrimTpBtn.Font = Enum.Font.SourceSans
+CrimTpBtn.TextSize = 15
+CrimTpBtn.Parent = CriminalesPage
+
+local CrimTpCorner = Instance.new("UICorner")
+CrimTpCorner.CornerRadius = UDim.new(0, 6)
+CrimTpCorner.Parent = CrimTpBtn
+
+local SeldaTpBtn = Instance.new("TextButton")
+SeldaTpBtn.Size = UDim2.new(1, -10, 0, 40)
+SeldaTpBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
+SeldaTpBtn.Text = "selda  [Tecla Z]"
+SeldaTpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SeldaTpBtn.Font = Enum.Font.SourceSans
+SeldaTpBtn.TextSize = 15
+SeldaTpBtn.Parent = CriminalesPage
+
+local SeldaTpCorner = Instance.new("UICorner")
+SeldaTpCorner.CornerRadius = UDim.new(0, 6)
+SeldaTpCorner.Parent = SeldaTpBtn
+
+--------------------------------------------------------------------------------
+-- BOTONES: SECCIÓN POLICIE
+--------------------------------------------------------------------------------
+local PlcSubTitle = Instance.new("TextLabel")
+PlcSubTitle.Size = UDim2.new(1, -10, 0, 15)
+PlcSubTitle.BackgroundTransparency = 1
+PlcSubTitle.Text = "presiona para ir a la base policial"
+PlcSubTitle.TextColor3 = Color3.fromRGB(150, 150, 165)
+PlcSubTitle.Font = Enum.Font.SourceSansItalic
+PlcSubTitle.TextSize = 12
+PlcSubTitle.TextXAlignment = Enum.TextXAlignment.Left
+PlcSubTitle.Parent = PoliciePage
+
+local BasePlcBtn = Instance.new("TextButton")
+BasePlcBtn.Size = UDim2.new(1, -10, 0, 40)
+BasePlcBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
+BasePlcBtn.Text = "Base PLC.  [Tecla P]"
+BasePlcBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+BasePlcBtn.Font = Enum.Font.SourceSans
+BasePlcBtn.TextSize = 15
+BasePlcBtn.Parent = PoliciePage
+
+local BasePlcCorner = Instance.new("UICorner")
+BasePlcCorner.CornerRadius = UDim.new(0, 6)
+BasePlcCorner.Parent = BasePlcBtn
+
+--------------------------------------------------------------------------------
+-- BOTÓN AIM MÓVIL
+--------------------------------------------------------------------------------
+local MobileAimBtn = Instance.new("TextButton")
+MobileAimBtn.Name = "MobileAimBtn"
+MobileAimBtn.Size = UDim2.new(0, 70, 0, 70)
+MobileAimBtn.Position = UDim2.new(0.8, 0, 0.5, 0)
+MobileAimBtn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+MobileAimBtn.BackgroundTransparency = 0.2
+MobileAimBtn.Text = "AIM Movil"
+MobileAimBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MobileAimBtn.Font = Enum.Font.SourceSansBold
+MobileAimBtn.TextSize = 13
+MobileAimBtn.Active = true
+MobileAimBtn.Parent = ScreenGui
+
+local MobileAimCorner = Instance.new("UICorner")
+MobileAimCorner.CornerRadius = UDim.new(1, 0)
+MobileAimCorner.Parent = MobileAimBtn
+
+if not UserInputService.TouchEnabled then
+	MobileAimBtn.Visible = false
+end
+
+--------------------------------------------------------------------------------
+-- ANIMACIÓN DINÁMICA DE APERTURA
+--------------------------------------------------------------------------------
+local targetSize = UDim2.new(0, 430, 0, 270)
+local targetPos = UDim2.new(0.5, -215, 0.5, -135)
+
+local tweenInfo = TweenInfo.new(0.65, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+local openTweenSize = TweenService:Create(MainFrame, tweenInfo, {Size = targetSize, Position = targetPos})
+local openTweenAlpha = TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {GroupTransparency = 0})
+
+openTweenSize:Play()
+openTweenAlpha:Play()
+
+--------------------------------------------------------------------------------
+-- SISTEMA DE ARRASTRE
+--------------------------------------------------------------------------------
+local function enableDrag(frame)
+	local dragging = false
+	local dragInput, dragStart, startPosition
+
+	local function update(input)
+		local delta = input.Position - dragStart
+		frame.Position = UDim2.new(
+			startPosition.X.Scale,
+			startPosition.X.Offset + delta.X,
+			startPosition.Y.Scale,
+			startPosition.Y.Offset + delta.Y
+		)
+	end
+
+	frame.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPosition = frame.Position
+
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
+
+	frame.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			dragInput = input
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if input == dragInput and dragging then
+			update(input)
+		end
+	end)
+end
+
+enableDrag(MainFrame)
+enableDrag(FloatingCircle)
+enableDrag(MobileAimBtn)
+
+--------------------------------------------------------------------------------
+-- INTERFAZ: CERRAR Y MINIMIZAR
+--------------------------------------------------------------------------------
+local function toggleMinimize()
+	MainFrame.Visible = not MainFrame.Visible
+	FloatingCircle.Visible = not MainFrame.Visible
+end
+
+MinimizeBtn.MouseButton1Click:Connect(toggleMinimize)
+FloatingCircle.MouseButton1Click:Connect(toggleMinimize)
+
+--------------------------------------------------------------------------------
+-- LÓGICA DE HABILIDADES
+--------------------------------------------------------------------------------
+local visulyEnabled = false
+
+local function isEnemy(player)
+	if player == LocalPlayer then return false end
+	if LocalPlayer.Team ~= nil and player.Team ~= nil then
+		return LocalPlayer.Team ~= player.Team
+	end
+	return true
+end
+
+local function applyHighlight(player)
+	if isEnemy(player) and player.Character then
+		local existing = player.Character:FindFirstChild("VisulyHighlight")
+		if not existing then
+			local highlight = Instance.new("Highlight")
+			highlight.Name = "VisulyHighlight"
+			highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
+			highlight.OutlineTransparency = 0
+			highlight.FillTransparency = 1
+			highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+			highlight.Adornee = player.Character
+			highlight.Parent = player.Character
+		end
+	end
+end
+
+local function removeHighlights()
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player.Character and player.Character:FindFirstChild("VisulyHighlight") then
+			player.Character.VisulyHighlight:Destroy()
+		end
+	end
+end
+
+local function updateHighlights()
+	removeHighlights()
+	if visulyEnabled then
+		for _, player in ipairs(Players:GetPlayers()) do
+			applyHighlight(player)
+		end
+	end
+end
+
+local function toggleVisuly()
+	visulyEnabled = not visulyEnabled
+	if visulyEnabled then
+		VisulyBtn.Text = "Visuly: ON  [Tecla V]"
+		VisulyBtn.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
+		updateHighlights()
+	else
+		VisulyBtn.Text = "Visuly: OFF  [Tecla V]"
+		VisulyBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
+		removeHighlights()
+	end
+end
+
+VisulyBtn.MouseButton1Click:Connect(toggleVisuly)
+
+for _, player in ipairs(Players:GetPlayers()) do
+	player.CharacterAdded:Connect(function()
+		task.wait(0.5)
+		if visulyEnabled then
+			applyHighlight(player)
+		end
+	end)
+end
+
+Players.PlayerAdded:Connect(function(player)
+	player.CharacterAdded:Connect(function()
+		task.wait(0.5)
+		if visulyEnabled then
+			applyHighlight(player)
+		end
+	end)
+end)
+
+-- Salto
+local jumpEnabled = false
+local normalJumpHeight = 7.2
+local superJumpHeight = 50
+
+local function disableSuperJump()
+	jumpEnabled = false
+	local character = LocalPlayer.Character
+	if character then
+		local humanoid = character:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			humanoid.UseJumpPower = false
+			humanoid.JumpHeight = normalJumpHeight
+		end
+	end
+end
+
+local function toggleSuperJump()
+	jumpEnabled = not jumpEnabled
+	local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+	if jumpEnabled then
+		JumpBtn.Text = "Súper Salto: ON  [Tecla J]"
+		JumpBtn.BackgroundColor3 = Color3.fromRGB(40, 160, 80)
+		if humanoid then
+			humanoid.UseJumpPower = false
+			humanoid.JumpHeight = superJumpHeight
+		end
+	else
+		JumpBtn.Text = "Súper Salto: OFF  [Tecla J]"
+		JumpBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 48)
+		disableSuperJump()
+	end
+end
+
+JumpBtn.MouseButton1Click:Connect(toggleSuperJump)
+
+-- Teleport 5 met..
+local function executeTeleportForward()
+	local character = LocalPlayer.Character
+	if character and character:FindFirstChild("HumanoidRootPart") then
+		local hrp = character.HumanoidRootPart
+		hrp.CFrame = hrp.CFrame + (hrp.CFrame.LookVector * 16.4)
+	end
+end
+
+TpForwardBtn.MouseButton1Click:Connect(executeTeleportForward)
+
+--------------------------------------------------------------------------------
+-- LÓGICA DE TELEPORTS DE MAPA
+--------------------------------------------------------------------------------
+local function teleportTo(targetObject)
+	local character = LocalPlayer.Character
+	if character and character:FindFirstChild("HumanoidRootPart") and targetObject then
+		if targetObject:IsA("BasePart") then
+			character.HumanoidRootPart.CFrame = targetObject.CFrame * CFrame.new(0, 3, 0)
+		elseif targetObject:IsA("Model") then
+			character.HumanoidRootPart.CFrame = targetObject:GetPivot() * CFrame.new(0, 3, 0)
+		end
+	end
+end
+
+local function tpBaseCrim()
+	pcall(function()
+		local spawn1 = Workspace["Criminals Spawn"].SpawnLocation
+		teleportTo(spawn1)
+	end)
+end
+
+local function tpSelda()
+	pcall(function()
+		local spawn2 = Workspace.Prison_spawn.Courtyard:GetChildren()[2]
+		teleportTo(spawn2)
+	end)
+end
+
+local function tpBasePlc()
+	pcall(function()
+		local spawnPolice = Workspace.spawn
+		teleportTo(spawnPolice)
+	end)
+end
+
+CrimTpBtn.MouseButton1Click:Connect(tpBaseCrim)
+SeldaTpBtn.MouseButton1Click:Connect(tpSelda)
+BasePlcBtn.MouseButton1Click:Connect(tpBasePlc)
+
+--------------------------------------------------------------------------------
+-- SISTEMA DE ATAJOS POR TECLADO (TECLAS INDIVIDUALES)
+--------------------------------------------------------------------------------
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+
+	-- Habilidades
+	if input.KeyCode == Enum.KeyCode.V then
+		toggleVisuly()
+	elseif input.KeyCode == Enum.KeyCode.J then
+		toggleSuperJump()
+	elseif input.KeyCode == Enum.KeyCode.T then
+		executeTeleportForward()
+
+	-- Criminales
+	elseif input.KeyCode == Enum.KeyCode.B then
+		tpBaseCrim()
+	elseif input.KeyCode == Enum.KeyCode.Z then
+		tpSelda()
+
+	-- Policie
+	elseif input.KeyCode == Enum.KeyCode.P then
+		tpBasePlc()
+
+	-- Minimizar / Mostrar Panel
+	elseif input.KeyCode == Enum.KeyCode.X then
+		toggleMinimize()
+	end
+end)
+
+--------------------------------------------------------------------------------
+-- SECCIÓN TP JUGADORES
+--------------------------------------------------------------------------------
+local function updatePlayerList()
+	for _, child in ipairs(TPJugadoresPage:GetChildren()) do
+		if child:IsA("Frame") then
+			child:Destroy()
+		end
+	end
+
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer then
+			local pItem = Instance.new("Frame")
+			pItem.Size = UDim2.new(1, -10, 0, 35)
+			pItem.BackgroundColor3 = Color3.fromRGB(32, 32, 42)
+			pItem.BorderSizePixel = 0
+			pItem.Parent = TPJugadoresPage
+
+			local pCorner = Instance.new("UICorner")
+			pCorner.CornerRadius = UDim.new(0, 6)
+			pCorner.Parent = pItem
+
+			local statusDot = Instance.new("Frame")
+			statusDot.Name = "StatusDot"
+			statusDot.Size = UDim2.new(0, 10, 0, 10)
+			statusDot.Position = UDim2.new(0, 6, 0, 6)
+			statusDot.BorderSizePixel = 0
+			statusDot.Parent = pItem
+
+			local dotCorner = Instance.new("UICorner")
+			dotCorner.CornerRadius = UDim.new(1, 0)
+			dotCorner.Parent = statusDot
+
+			if LocalPlayer.Team ~= nil and player.Team ~= nil then
+				if LocalPlayer.Team == player.Team then
+					statusDot.BackgroundColor3 = Color3.fromRGB(50, 220, 50)
+				else
+					statusDot.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+				end
+			else
+				statusDot.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+			end
+
+			local pName = Instance.new("TextLabel")
+			pName.Size = UDim2.new(0.6, 0, 1, 0)
+			pName.Position = UDim2.new(0, 22, 0, 0)
+			pName.BackgroundTransparency = 1
+			pName.Text = player.DisplayName
+			pName.TextColor3 = Color3.fromRGB(255, 255, 255)
+			pName.Font = Enum.Font.SourceSansBold
+			pName.TextSize = 14
+			pName.TextXAlignment = Enum.TextXAlignment.Left
+			pName.Parent = pItem
+
+			local tpBtn = Instance.new("TextButton")
+			tpBtn.Size = UDim2.new(0.3, 0, 0.8, 0)
+			tpBtn.Position = UDim2.new(0.68, 0, 0.1, 0)
+			tpBtn.BackgroundColor3 = Color3.fromRGB(45, 120, 240)
+			tpBtn.Text = "TP"
+			tpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+			tpBtn.Font = Enum.Font.SourceSansBold
+			tpBtn.TextSize = 13
+			tpBtn.Parent = pItem
+
+			local tpCorner = Instance.new("UICorner")
+			tpCorner.CornerRadius = UDim.new(0, 4)
+			tpCorner.Parent = tpBtn
+
+			tpBtn.MouseButton1Click:Connect(function()
+				if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+					teleportTo(player.Character.HumanoidRootPart)
+				end
+			end)
+		end
+	end
+end
+
+Players.PlayerAdded:Connect(updatePlayerList)
+Players.PlayerRemoving:Connect(updatePlayerList)
+
+task.spawn(function()
+	task.wait(0.5)
+	updatePlayerList()
+end)
+
+--------------------------------------------------------------------------------
+-- LÓGICA DE SEGUIMIENTO (AIMBOT CON CLIC DERECHO / AIM MOVIL)
+--------------------------------------------------------------------------------
+local isMobileAimHolding = false
+
+MobileAimBtn.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+		isMobileAimHolding = true
+	end
+end)
+
+MobileAimBtn.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+		isMobileAimHolding = false
+	end
+end)
+
+local function getClosestEnemy()
+	local closestPlayer = nil
+	local shortestDistance = math.huge
+	local mousePos = UserInputService:GetMouseLocation()
+
+	for _, player in ipairs(Players:GetPlayers()) do
+		if isEnemy(player) and player.Character then
+			local head = player.Character:FindFirstChild("Head") or player.Character:FindFirstChild("HumanoidRootPart")
+			if head then
+				local screenPos, onScreen = Workspace.CurrentCamera:WorldToViewportPoint(head.Position)
+				if onScreen then
+					local distance = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+					if distance < shortestDistance then
+						shortestDistance = distance
+						closestPlayer = player
+					end
+				end
+			end
+		end
+	end
+	return closestPlayer
+end
+
+local aimbotConnection = RunService.RenderStepped:Connect(function()
+	local isRightClicking = UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
+	
+	if isRightClicking or isMobileAimHolding then
+		local target = getClosestEnemy()
+		if target and target.Character then
+			local targetPart = target.Character:FindFirstChild("Head") or target.Character:FindFirstChild("HumanoidRootPart")
+			if targetPart then
+				Workspace.CurrentCamera.CFrame = CFrame.lookAt(Workspace.CurrentCamera.CFrame.Position, targetPart.Position)
+			end
+		end
+	end
+end)
+
+--------------------------------------------------------------------------------
+-- LIMPIEZA TOTAL AL CERRAR (X)
+--------------------------------------------------------------------------------
+CloseBtn.MouseButton1Click:Connect(function()
+	visulyEnabled = false
+	removeHighlights()
+	
+	disableSuperJump()
+	
+	if aimbotConnection then
+		aimbotConnection:Disconnect()
+		aimbotConnection = nil
+	end
+	
+	ScreenGui:Destroy()
+end)
